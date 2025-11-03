@@ -60,12 +60,10 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
                        return_format='one_pair') #transforms=transforms_train, transforms_aug=transforms_aug
     val_set = Subset(main_dataset=dataset,
                      subset_indices=val_indices,
-                     return_format='all_pairs',
-                     transforms=transforms_val)
+                     return_format='all_pairs')  #transforms=transforms_val
     test_set = Subset(main_dataset=dataset,
                       subset_indices=test_indices,
-                      return_format='all_pairs',
-                      transforms=transforms_test)
+                      return_format='all_pairs')  #transforms=transforms_test
 
     min_sample_per_epoch = 5
     if 'max_training_samples' in config.keys():
