@@ -49,8 +49,8 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
         split_indices(indices=indices, splits=ratios, random_seed=1)
 
     transforms_aug = None
-    print(len(transforms_list))
-    
+    print("Transform List", len(transforms_list))
+
     if len(transforms_list) == 4:
         transforms_train, transforms_val, transforms_test, transforms_aug = transforms_list
     else:
@@ -59,8 +59,7 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
     train_set = Subset(main_dataset=dataset,
                        subset_indices=train_indices,
                        return_format='one_pair',
-                       transforms=transforms_train,
-                       transforms_aug=transforms_aug)
+                       transforms=transforms_train) #transforms_aug=transforms_aug
     val_set = Subset(main_dataset=dataset,
                      subset_indices=val_indices,
                      return_format='all_pairs',
