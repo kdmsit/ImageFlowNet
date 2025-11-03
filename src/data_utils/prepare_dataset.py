@@ -45,8 +45,7 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
     ratios = [float(c) for c in config.train_val_test_ratio.split(':')]
     ratios = tuple([c / sum(ratios) for c in ratios])
     indices = list(range(len(dataset)))
-    train_indices, val_indices, test_indices = \
-        split_indices(indices=indices, splits=ratios, random_seed=1)
+    train_indices, val_indices, test_indices = split_indices(indices=indices, splits=ratios, random_seed=1)
 
     transforms_aug = None
     print("Transform List", len(transforms_list))
@@ -58,8 +57,7 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
 
     train_set = Subset(main_dataset=dataset,
                        subset_indices=train_indices,
-                       return_format='one_pair',
-                       transforms=transforms_train) #transforms_aug=transforms_aug
+                       return_format='one_pair') #transforms=transforms_train, transforms_aug=transforms_aug
     val_set = Subset(main_dataset=dataset,
                      subset_indices=val_indices,
                      return_format='all_pairs',
