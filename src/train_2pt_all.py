@@ -81,8 +81,8 @@ def train(config: AttributeHashmap):
     else:
         transforms_list = [train_transform, None, None]
 
-    train_set, val_set, test_set, num_image_channel, max_t = \
-        prepare_dataset(config=config, transforms_list=transforms_list)
+    # train_set, val_set, test_set, num_image_channel, max_t = prepare_dataset(config=config, transforms_list=transforms_list)
+    train_set, val_set, test_set, num_image_channel = prepare_dataset(config=config,transforms_list=transforms_list)
 
     log('Using device: %s' % device, to_console=True)
 
