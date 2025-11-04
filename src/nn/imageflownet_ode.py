@@ -78,6 +78,8 @@ class ImageFlowNetODE(BaseNetwork):
 
         print("hdummy size:", h_dummy.size())
         print("emb size:", emb.size())
+        h_dummy = h_dummy.repeat(1, 3, 1, 1)
+        print("hdummy size:", h_dummy.size())
 
 
         for module in self.unet.input_blocks:
