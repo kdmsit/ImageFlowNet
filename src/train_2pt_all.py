@@ -130,7 +130,8 @@ def train(config: AttributeHashmap):
     recon_psnr_thr, recon_good_enough = 25, False
 
     # Only relevant to ODE
-    config.t_multiplier = config.ode_max_t / max_t
+    config.t_multiplier = config.ode_max_t
+    # config.t_multiplier = config.ode_max_t / max_t
 
     for epoch_idx in tqdm(range(config.max_epochs)):
         if config.model == 'I2SBUNet':
