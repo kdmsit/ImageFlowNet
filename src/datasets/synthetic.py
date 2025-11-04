@@ -63,9 +63,7 @@ class SyntheticSubset(SyntheticDataset):
         self.target_dim = main_dataset.target_dim
         self.return_format = return_format
 
-        self.image_by_patient = [
-            main_dataset.image_by_patient[i] for i in subset_indices
-        ]
+        self.image_by_patient = [main_dataset.image_by_patient[i] for i in subset_indices]
 
         self.all_image_pairs = []
         for image_list in self.image_by_patient:
@@ -90,8 +88,7 @@ class SyntheticSubset(SyntheticDataset):
         print("idx", idx)
         if self.return_format == 'one_pair':
             image_list = self.image_by_patient[idx]
-            pair_indices = list(
-                itertools.combinations(np.arange(len(image_list)), r=2))
+            pair_indices = list(itertools.combinations(np.arange(len(image_list)), r=2))
             sampled_pair = [
                 image_list[i]
                 for i in pair_indices[np.random.choice(len(pair_indices))]

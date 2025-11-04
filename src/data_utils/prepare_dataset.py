@@ -55,16 +55,31 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
     else:
         transforms_train, transforms_val, transforms_test = transforms_list
 
-    train_set = Subset(main_dataset=dataset,
-                       subset_indices=train_indices,
-                       return_format='one_pair') #return_format='one_pair', transforms=transforms_train, transforms_aug=transforms_aug
-    val_set = Subset(main_dataset=dataset,
-                     subset_indices=val_indices,
-                     return_format='all_pairs')  #transforms=transforms_val
-
-    test_set = Subset(main_dataset=dataset,
-                      subset_indices=test_indices,
-                      return_format='all_pairs')  #transforms=transforms_test
+    # Some dataset Subset classes do not accept `transforms` / `transforms_aug` kwargs. Only pass them when available.
+    if config.dataset_name == 'synthetic':
+        train_set = Subset(main_dataset=dataset,
+                           subset_indices=train_indices,
+                           return_format='one_pair')
+        val_set = Subset(main_dataset=dataset,
+                         subset_indices=val_indices,
+                         return_format='all_pairs')
+        test_set = Subset(main_dataset=dataset,
+                          subset_indices=test_indices,
+                          return_format='all_pairs')
+    else:
+        train_set = Subset(main_dataset=dataset,
+                           subset_indices=train_indices,
+                           return_format='one_pair',
+                           transforms=transforms_train,
+                           transforms_aug=transforms_aug)
+        val_set = Subset(main_dataset=dataset,
+                         subset_indices=val_indices,
+                         return_format='all_pairs',
+                         transforms=transforms_val)
+        test_set = Subset(main_dataset=dataset,
+                          subset_indices=test_indices,
+                          return_format='all_pairs',
+                          transforms=transforms_test)
 
     min_sample_per_epoch = 5
     if 'max_training_samples' in config.keys():
