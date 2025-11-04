@@ -53,7 +53,7 @@ class ImageFlowNetODE(BaseNetwork):
         # initialize model
         self.unet = create_model(
             image_size=image_size,
-            in_channels=in_channels,
+            in_channels=1,  #in_channels
             num_channels=64,
             num_res_blocks=1,
             channel_mult='',
@@ -78,7 +78,7 @@ class ImageFlowNetODE(BaseNetwork):
 
         # print("hdummy size:", h_dummy.size())
         # print("emb size:", emb.size())
-        h_dummy = h_dummy.repeat(1, 3, 1, 1)
+        # h_dummy = h_dummy.repeat(1, 3, 1, 1)
         # print("hdummy size:", h_dummy.size())
 
 
