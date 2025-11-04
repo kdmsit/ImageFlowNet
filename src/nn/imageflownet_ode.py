@@ -75,6 +75,11 @@ class ImageFlowNetODE(BaseNetwork):
         h_dummy = torch.zeros((1, 1, image_size, image_size)).type(self.unet.dtype)
         t_dummy = torch.zeros((1)).type(self.unet.dtype)
         emb = self.unet.time_embed(timestep_embedding(t_dummy, self.unet.model_channels))
+
+        print("hdummy size:", h_dummy.size())
+        print("emb size:", emb.size())
+
+
         for module in self.unet.input_blocks:
             h_dummy = module(h_dummy, emb)
             self.dim_list.append(h_dummy.shape[1])
