@@ -16,4 +16,5 @@ class ExtendedDataset(Dataset):
 
     def __getitem__(self, idx) -> Tuple[np.array, np.array]:
         print(idx)
+        print(len(self.dataset))
         return self.dataset.__getitem__(idx % len(self.dataset))
