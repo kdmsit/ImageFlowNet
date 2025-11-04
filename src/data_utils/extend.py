@@ -5,9 +5,7 @@ from torch.utils.data import Dataset
 
 
 class ExtendedDataset(Dataset):
-    def __init__(self,
-                 dataset: Dataset,
-                 desired_len: int):
+    def __init__(self,dataset: Dataset, desired_len: int):
         self.dataset = dataset
         self.desired_len = desired_len
 

@@ -66,12 +66,12 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
                       subset_indices=test_indices,
                       return_format='all_pairs')  #transforms=transforms_test
 
-    # min_sample_per_epoch = 5
-    # if 'max_training_samples' in config.keys():
-    #     min_sample_per_epoch = config.max_training_samples
-    # desired_len = max(len(train_set), min_sample_per_epoch)
-    # print("desire len", desired_len)
-    # train_set = ExtendedDataset(dataset=train_set, desired_len=desired_len)
+    min_sample_per_epoch = 5
+    if 'max_training_samples' in config.keys():
+        min_sample_per_epoch = config.max_training_samples
+    desired_len = max(len(train_set), min_sample_per_epoch)
+    print("desire len", desired_len)
+    train_set = ExtendedDataset(dataset=train_set, desired_len=desired_len)
 
     train_set = DataLoader(dataset=train_set,
                            batch_size=1,
