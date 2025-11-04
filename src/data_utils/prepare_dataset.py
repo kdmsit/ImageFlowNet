@@ -32,6 +32,7 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
         Subset = BrainGBMSubset
 
     elif config.dataset_name == 'synthetic':
+        print("here at synthetic")
         dataset = SyntheticDataset(base_path=config.dataset_path,
                                    image_folder=config.image_folder,
                                    target_dim=config.target_dim)
