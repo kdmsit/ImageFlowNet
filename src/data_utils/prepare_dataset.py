@@ -84,6 +84,8 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
                           shuffle=False,
                           num_workers=config.num_workers)
 
+    print(dataset.num_image_channel())
+
     return train_set, val_set, test_set, dataset.num_image_channel()
     # return train_set, val_set, test_set, dataset.num_image_channel(), dataset.max_t
 
