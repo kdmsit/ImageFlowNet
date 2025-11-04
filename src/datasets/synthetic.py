@@ -45,8 +45,7 @@ class SyntheticSubset(SyntheticDataset):
     def __init__(self,
                  main_dataset: SyntheticDataset = None,
                  subset_indices: List[int] = None,
-                 return_format: str = Literal['one_pair', 'all_pairs',
-                                              'array']):
+                 return_format: str = Literal['one_pair', 'all_pairs','array']):
         '''
         A subset of SyntheticDataset.
 
