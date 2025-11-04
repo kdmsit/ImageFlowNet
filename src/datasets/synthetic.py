@@ -87,6 +87,7 @@ class SyntheticSubset(SyntheticDataset):
             return len(self.image_by_patient)
 
     def __getitem__(self, idx) -> Tuple[np.array, np.array]:
+        print("idx", idx)
         if self.return_format == 'one_pair':
             image_list = self.image_by_patient[idx]
             pair_indices = list(
