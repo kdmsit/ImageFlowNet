@@ -201,6 +201,8 @@ def train_epoch(config: AttributeHashmap,
             filepath=config.log_dir,
             to_console=False)
 
+    print(len(train_set))
+
     assert len(train_set) == len(train_set.dataset)
     num_train_samples = min(config.max_training_samples, len(train_set))
     plot_freq = num_train_samples // config.n_plot_per_epoch
