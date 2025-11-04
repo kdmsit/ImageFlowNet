@@ -47,7 +47,7 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
     train_indices, val_indices, test_indices = split_indices(indices=indices, splits=ratios, random_seed=1)
 
     transforms_aug = None
-    print("Transform List", len(transforms_list))
+    # print("Transform List", len(transforms_list))
 
     if len(transforms_list) == 4:
         transforms_train, transforms_val, transforms_test, transforms_aug = transforms_list
@@ -84,7 +84,7 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
                           shuffle=False,
                           num_workers=config.num_workers)
 
-    print(dataset.num_image_channel())
+    print("train set",len(train_set))
 
     return train_set, val_set, test_set, dataset.num_image_channel()
     # return train_set, val_set, test_set, dataset.num_image_channel(), dataset.max_t
