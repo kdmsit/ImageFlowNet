@@ -88,24 +88,24 @@ def train(config: AttributeHashmap):
 
     # Build the model
     kwargs = {}
-    if config.model == 'I2SBUNet':
-        step_to_t = torch.linspace(1e-4, 1, config.diffusion_interval, device=device) * config.diffusion_interval
-        betas = make_beta_schedule(n_timestep=config.diffusion_interval, linear_end=1 / config.diffusion_interval)
-        betas = np.concatenate([betas[:config.diffusion_interval//2], np.flip(betas[:config.diffusion_interval//2])])
-        diffusion = Diffusion(betas, device)
-        kwargs = {'step_to_t': step_to_t, 'diffusion': diffusion}
-
-    try:
-        model = globals()[config.model](device=device,
-                                        num_filters=config.num_filters,
-                                        depth=config.depth,
-                                        ode_location=config.ode_location,
-                                        in_channels=num_image_channel,
-                                        out_channels=num_image_channel,
-                                        contrastive=config.coeff_contrastive + config.coeff_invariance > 0,
-                                        **kwargs)
-    except:
-        raise ValueError('`config.model`: %s not supported.' % config.model)
+    # if config.model == 'I2SBUNet':
+    #     step_to_t = torch.linspace(1e-4, 1, config.diffusion_interval, device=device) * config.diffusion_interval
+    #     betas = make_beta_schedule(n_timestep=config.diffusion_interval, linear_end=1 / config.diffusion_interval)
+    #     betas = np.concatenate([betas[:config.diffusion_interval//2], np.flip(betas[:config.diffusion_interval//2])])
+    #     diffusion = Diffusion(betas, device)
+    #     kwargs = {'step_to_t': step_to_t, 'diffusion': diffusion}
+    #
+    # try:
+    model = ImageFlowNetODE(device=device,
+                                    num_filters=config.num_filters,
+                                    depth=config.depth,
+                                    ode_location=config.ode_location,
+                                    in_channels=num_image_channel,
+                                    out_channels=num_image_channel,
+                                    contrastive=config.coeff_contrastive + config.coeff_invariance > 0,
+                                    **kwargs)
+    # except:
+    #     raise ValueError('`config.model`: %s not supported.' % config.model)
 
     ema = ExponentialMovingAverage(model.parameters(), decay=0.9)
 
