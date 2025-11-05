@@ -15,7 +15,7 @@
 #export PYTORCH_CUDA_ALLOC_CONF='expandable_segments:True'
 #export NUMEXPR_MAX_THREADS=64
 
-source /home/rs1/21CS92R01/miniconda3/bin/activate crystal-llm
+source /home/rs1/21CS92R01/miniconda3/bin/activate imageflownet
 
 
 python train_2pt_all.py --model ImageFlowNetODE --random-seed 1 --dataset-name synthetic --max-epochs 100
