@@ -26,9 +26,9 @@ class SyntheticDataset(Dataset):
 
         # Normalize path construction to avoid issues with trailing slashes.
         folder_glob = os.path.join(base_path, image_folder, '*/')
-        print("Searching in:", folder_glob)
+        # print("Searching in:", folder_glob)
         all_image_folders = sorted(glob(folder_glob))
-        print("Found folders:", all_image_folders)
+        # print("Found folders:", all_image_folders)
 
         # root_path = os.path.join(base_path, image_folder)
         # print("Root=>", root_path)
@@ -43,7 +43,7 @@ class SyntheticDataset(Dataset):
         # Synthetic images are named with 'time_XXX.png' so we can parse times.
         self.max_t = 0
 
-        print("all_image_folders",len(all_image_folders))
+        # print("all_image_folders",len(all_image_folders))
 
         for folder in all_image_folders:
             paths = sorted(glob(os.path.join(folder, '*.png')))
@@ -87,9 +87,6 @@ class SyntheticSubset(SyntheticDataset):
 
         self.target_dim = main_dataset.target_dim
         self.return_format = return_format
-        print(main_dataset)
-        print("image_by_patient",len(main_dataset.image_by_patient))
-        exit()
         self.image_by_patient = [main_dataset.image_by_patient[i] for i in subset_indices]
 
         self.all_image_pairs = []
