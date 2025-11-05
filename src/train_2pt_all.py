@@ -1088,9 +1088,9 @@ if __name__ == '__main__':
     parser.add_argument('--gpu-id', help='Index of GPU device', default=0, type=int)
     parser.add_argument('--run-count', default=None, type=int)
 
-    parser.add_argument('--dataset-name', default='retina_ucsf', type=str)
+    parser.add_argument('--dataset-name', default='synthetic', type=str) #synthetic,retina_ucsf
     parser.add_argument('--target-dim', default='(256, 256)', type=ast.literal_eval)
-    parser.add_argument('--dataset-path', default='$ROOT/data/retina_ucsf/', type=str)
+    parser.add_argument('--dataset-path', default='$ROOT/data/synthesized/', type=str) #$ROOT/data/retina_ucsf/
     parser.add_argument('--image-folder', default='UCSF_images_final_512x512', type=str)
     parser.add_argument('--output-save-folder', default='$ROOT/results/', type=str)
     parser.add_argument('--segmentor-ckpt', default='$ROOT/checkpoints/segment_retinaUCSF_seed1.pty', type=str)
