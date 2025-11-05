@@ -56,11 +56,9 @@ class SyntheticDataset(Dataset):
 
 class SyntheticSubset(SyntheticDataset):
 
-    def __init__(self,
-                 main_dataset: SyntheticDataset = None,
+    def __init__(self,main_dataset: SyntheticDataset = None,
                  subset_indices: List[int] = None,
-                 return_format: str = Literal['one_pair', 'all_pairs',
-                                              'array']):
+                 return_format: str = Literal['one_pair', 'all_pairs','array']):
         '''
         A subset of SyntheticDataset.
 
@@ -77,6 +75,7 @@ class SyntheticSubset(SyntheticDataset):
 
         self.target_dim = main_dataset.target_dim
         self.return_format = return_format
+        print(main_dataset)
         print("image_by_patient",len(main_dataset.image_by_patient))
         exit()
         self.image_by_patient = [main_dataset.image_by_patient[i] for i in subset_indices]
