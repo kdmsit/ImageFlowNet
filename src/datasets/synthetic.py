@@ -28,7 +28,8 @@ class SyntheticDataset(Dataset):
         folder_glob = os.path.join(base_path, image_folder, '*/')
         print(folder_glob)
         all_image_folders = sorted(glob(folder_glob))
-
+        print(all_image_folders)
+        
         self.image_by_patient = []
 
         # Track maximum timestamp across the dataset (used by training code).
