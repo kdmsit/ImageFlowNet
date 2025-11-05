@@ -25,12 +25,13 @@ class SyntheticDataset(Dataset):
         self.target_dim = target_dim
 
         # Normalize path construction to avoid issues with trailing slashes.
-        folder_glob = os.path.join(base_path, image_folder, '*/')
-        print("Searching in:", folder_glob)
-        all_image_folders = sorted(glob(folder_glob))
-        print("Found folders:", all_image_folders)
+        # folder_glob = os.path.join(base_path, image_folder, '*/')
+        # print("Searching in:", folder_glob)
+        # all_image_folders = sorted(glob(folder_glob))
+        # print("Found folders:", all_image_folders)
 
         root = os.path.join(base_path, image_folder)
+        print(root)
         all_folders = [ os.path.join(root, d) for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
 
         print("Found", len(all_folders), "folders:")
