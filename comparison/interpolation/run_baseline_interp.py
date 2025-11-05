@@ -95,8 +95,7 @@ class Interpolator(object):
 
 @torch.no_grad()
 def test(config: AttributeHashmap):
-    device = torch.device(
-        'cuda:%d' % config.gpu_id if torch.cuda.is_available() else 'cpu')
+    device = torch.device(f"cuda:{int(config.gpu_id)}" if torch.cuda.is_available() else "cpu")
     # train_set, val_set, test_set, num_image_channel, max_t = \
     #     prepare_dataset_npt(config=config)
     train_set, val_set, test_set, num_image_channel, max_t = \

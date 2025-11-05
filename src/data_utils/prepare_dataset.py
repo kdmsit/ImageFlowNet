@@ -5,6 +5,7 @@ from datasets.retina_ucsf import RetinaUCSFDataset, RetinaUCSFSubset, RetinaUCSF
 from datasets.brain_ms import BrainMSDataset, BrainMSSubset, BrainMSSegDataset, BrainMSSegSubset, brain_MS_split
 from datasets.brain_gbm import BrainGBMDataset, BrainGBMSubset, BrainGBMSegDataset, BrainGBMSegSubset
 from datasets.synthetic import SyntheticDataset, SyntheticSubset
+from datasets.synthetic import get_time as synth_get_time
 from torch.utils.data import DataLoader
 from utils.attribute_hashmap import AttributeHashmap
 
@@ -31,21 +32,53 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
         dataset = BrainGBMDataset(target_dim=config.target_dim)
         Subset = BrainGBMSubset
 
+    # elif config.dataset_name == 'synthetic':
+    #     # Allow config to omit `dataset_path` / `image_folder` and fall back
+    #     # to the defaults used by SyntheticDataset.
+    #     base_path = getattr(config, 'dataset_path', None)
+    #     image_folder = getattr(config, 'image_folder', None)
+    #     if base_path is None:
+    #         base_path = '../../data/synthesized/'
+    #     if image_folder is None:
+    #         image_folder = 'base/'
+    #     dataset = SyntheticDataset(base_path=base_path,
+    #                                image_folder=image_folder,
+    #                                target_dim=config.target_dim)
+    #     Subset = SyntheticSubset
+
     elif config.dataset_name == 'synthetic':
-        print("here at synthetic")
         dataset = SyntheticDataset(base_path=config.dataset_path,
-                                   image_folder=config.image_folder,
-                                   target_dim=config.target_dim)
+                                image_folder=config.image_folder,
+                                target_dim=config.target_dim)
         Subset = SyntheticSubset
 
     else:
-        raise ValueError('Dataset not found. Check `dataset_name` in config yaml file.')
+        raise ValueError(
+            'Dataset not found. Check `dataset_name` in config yaml file.')
+
+    # For synthetic dataset, ensure max_t is computed to avoid division by zero later.
+    if config.dataset_name == 'synthetic':
+        try:
+            if not hasattr(dataset, 'max_t') or dataset.max_t == 0:
+                computed_max_t = 0
+                for image_list in getattr(dataset, 'image_by_patient', []):
+                    for p in image_list:
+                        try:
+                            computed_max_t = max(computed_max_t, synth_get_time(p))
+                        except Exception:
+                            pass
+                # Fallback to 1.0 if still zero to avoid division by zero downstream
+                dataset.max_t = computed_max_t if computed_max_t > 0 else 1.0
+        except Exception:
+            # Defensive fallback
+            dataset.max_t = 1.0
 
     # Load into DataLoader
     ratios = [float(c) for c in config.train_val_test_ratio.split(':')]
     ratios = tuple([c / sum(ratios) for c in ratios])
     indices = list(range(len(dataset)))
-    train_indices, val_indices, test_indices = split_indices(indices=indices, splits=ratios, random_seed=1)
+    train_indices, val_indices, test_indices = \
+        split_indices(indices=indices, splits=ratios, random_seed=1)
 
     transforms_aug = None
     if len(transforms_list) == 4:
@@ -53,7 +86,8 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
     else:
         transforms_train, transforms_val, transforms_test = transforms_list
 
-    # Some dataset Subset classes do not accept `transforms` / `transforms_aug` kwargs. Only pass them when available.
+    # Some dataset Subset classes (e.g., SyntheticSubset) do not accept
+    # `transforms` / `transforms_aug` kwargs. Only pass them when available.
     if config.dataset_name == 'synthetic':
         train_set = Subset(main_dataset=dataset,
                            subset_indices=train_indices,
@@ -83,7 +117,6 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
     if 'max_training_samples' in config.keys():
         min_sample_per_epoch = config.max_training_samples
     desired_len = max(len(train_set), min_sample_per_epoch)
-    print("desire len", desired_len)
     train_set = ExtendedDataset(dataset=train_set, desired_len=desired_len)
 
     train_set = DataLoader(dataset=train_set,
@@ -99,10 +132,7 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
                           shuffle=False,
                           num_workers=config.num_workers)
 
-    print("train set",len(train_set))
-
-    return train_set, val_set, test_set, dataset.num_image_channel()
-    # return train_set, val_set, test_set, dataset.num_image_channel(), dataset.max_t
+    return train_set, val_set, test_set, dataset.num_image_channel(), dataset.max_t
 
 
 def prepare_dataset_npt(config: AttributeHashmap, transforms_list = [None, None, None]):

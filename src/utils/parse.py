@@ -14,8 +14,10 @@ def parse_settings(config: AttributeHashmap, segmentor: bool = False,
             config[key] = float(config[key])
 
     # fix path issues
-    ROOT = '/'.join(
-        os.path.dirname(os.path.abspath(__file__)).split('/')[:-2])
+    # Use file location rather than PWD to robustly resolve project root.
+    # src/utils/parse.py -> go up two levels to reach repo root.
+    ROOT = '/'.join(os.path.dirname(os.path.abspath(__file__)).split('/')[:-2])
+
     for key in config.keys():
         if type(config[key]) == str and '$ROOT' in config[key]:
             config[key] = config[key].replace('$ROOT', ROOT)

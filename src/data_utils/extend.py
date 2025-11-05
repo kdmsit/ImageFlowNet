@@ -5,7 +5,9 @@ from torch.utils.data import Dataset
 
 
 class ExtendedDataset(Dataset):
-    def __init__(self,dataset: Dataset, desired_len: int):
+    def __init__(self,
+                 dataset: Dataset,
+                 desired_len: int):
         self.dataset = dataset
         self.desired_len = desired_len
 
@@ -13,4 +15,4 @@ class ExtendedDataset(Dataset):
         return self.desired_len
 
     def __getitem__(self, idx) -> Tuple[np.array, np.array]:
-        return self.dataset.__getitem__(idx % len(self.dataset))  #len(self.dataset)
+        return self.dataset.__getitem__(idx % len(self.dataset))

@@ -23,14 +23,28 @@ class SyntheticDataset(Dataset):
         super().__init__()
 
         self.target_dim = target_dim
-        all_image_folders = sorted(glob('%s/%s/*/' % (base_path, image_folder)))
+        # Normalize path construction to avoid issues with trailing slashes.
+        folder_glob = os.path.join(base_path, image_folder, '*/')
+        all_image_folders = sorted(glob(folder_glob))
 
         self.image_by_patient = []
 
+        # Track maximum timestamp across the dataset (used by training code).
+        # Synthetic images are named with 'time_XXX.png' so we can parse times.
+        self.max_t = 0
+
         for folder in all_image_folders:
-            paths = sorted(glob('%s/*.png' % (folder)))
+            paths = sorted(glob(os.path.join(folder, '*.png')))
             if len(paths) >= 2:
                 self.image_by_patient.append(paths)
+            for p in paths:
+                try:
+                    self.max_t = max(self.max_t, get_time(p))
+                except Exception:
+                    # If parsing fails, ignore and continue; downstream code
+                    # expects a numeric max_t but synthetic filenames should
+                    # follow the 'time_XXX.png' convention.
+                    pass
 
     def __len__(self) -> int:
         return len(self.image_by_patient)
@@ -45,7 +59,8 @@ class SyntheticSubset(SyntheticDataset):
     def __init__(self,
                  main_dataset: SyntheticDataset = None,
                  subset_indices: List[int] = None,
-                 return_format: str = Literal['one_pair', 'all_pairs','array']):
+                 return_format: str = Literal['one_pair', 'all_pairs',
+                                              'array']):
         '''
         A subset of SyntheticDataset.
 
@@ -63,7 +78,9 @@ class SyntheticSubset(SyntheticDataset):
         self.target_dim = main_dataset.target_dim
         self.return_format = return_format
 
-        self.image_by_patient = [main_dataset.image_by_patient[i] for i in subset_indices]
+        self.image_by_patient = [
+            main_dataset.image_by_patient[i] for i in subset_indices
+        ]
 
         self.all_image_pairs = []
         for image_list in self.image_by_patient:
@@ -85,10 +102,10 @@ class SyntheticSubset(SyntheticDataset):
             return len(self.image_by_patient)
 
     def __getitem__(self, idx) -> Tuple[np.array, np.array]:
-        print("idx", idx)
         if self.return_format == 'one_pair':
             image_list = self.image_by_patient[idx]
-            pair_indices = list(itertools.combinations(np.arange(len(image_list)), r=2))
+            pair_indices = list(
+                itertools.combinations(np.arange(len(image_list)), r=2))
             sampled_pair = [
                 image_list[i]
                 for i in pair_indices[np.random.choice(len(pair_indices))]

@@ -171,8 +171,7 @@ def plot_side_by_side(t_list, x0_true, xT_true, x0_recon, xT_recon, xT_pred, sav
 
 
 def main(config: AttributeHashmap):
-    device = torch.device(
-        'cuda:%d' % config.gpu_id if torch.cuda.is_available() else 'cpu')
+    device = torch.device(f"cuda:{int(config.gpu_id)}" if torch.cuda.is_available() else "cpu")
     train_set, val_set, test_set, num_image_channel, max_t = \
         prepare_dataset_all_subarrays(config=config)
 

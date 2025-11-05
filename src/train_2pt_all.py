@@ -56,8 +56,8 @@ def neg_cos_sim(p: torch.Tensor, z: torch.Tensor) -> torch.Tensor:
     return -(p * z).sum(dim=1).mean()
 
 def train(config: AttributeHashmap):
-    device = torch.device(
-        'cuda:%d' % config.gpu_id if torch.cuda.is_available() else 'cpu')
+    # Ensure gpu id is converted to int if passed as a string from CLI
+    device = torch.device(f"cuda:{int(config.gpu_id)}" if torch.cuda.is_available() else "cpu")
 
     train_transform = A.Compose(
         [
@@ -81,31 +81,31 @@ def train(config: AttributeHashmap):
     else:
         transforms_list = [train_transform, None, None]
 
-    # train_set, val_set, test_set, num_image_channel, max_t = prepare_dataset(config=config, transforms_list=transforms_list)
-    train_set, val_set, test_set, num_image_channel = prepare_dataset(config=config,transforms_list=transforms_list)
+    train_set, val_set, test_set, num_image_channel, max_t = \
+        prepare_dataset(config=config, transforms_list=transforms_list)
 
     log('Using device: %s' % device, to_console=True)
 
     # Build the model
     kwargs = {}
-    # if config.model == 'I2SBUNet':
-    #     step_to_t = torch.linspace(1e-4, 1, config.diffusion_interval, device=device) * config.diffusion_interval
-    #     betas = make_beta_schedule(n_timestep=config.diffusion_interval, linear_end=1 / config.diffusion_interval)
-    #     betas = np.concatenate([betas[:config.diffusion_interval//2], np.flip(betas[:config.diffusion_interval//2])])
-    #     diffusion = Diffusion(betas, device)
-    #     kwargs = {'step_to_t': step_to_t, 'diffusion': diffusion}
-    #
-    # try:
-    model = ImageFlowNetODE(device=device,
-                                    num_filters=config.num_filters,
-                                    depth=config.depth,
-                                    ode_location=config.ode_location,
-                                    in_channels=num_image_channel,
-                                    out_channels=num_image_channel,
-                                    contrastive=config.coeff_contrastive + config.coeff_invariance > 0,
-                                    **kwargs)
-    # except:
-    #     raise ValueError('`config.model`: %s not supported.' % config.model)
+    if config.model == 'I2SBUNet':
+        step_to_t = torch.linspace(1e-4, 1, config.diffusion_interval, device=device) * config.diffusion_interval
+        betas = make_beta_schedule(n_timestep=config.diffusion_interval, linear_end=1 / config.diffusion_interval)
+        betas = np.concatenate([betas[:config.diffusion_interval//2], np.flip(betas[:config.diffusion_interval//2])])
+        diffusion = Diffusion(betas, device)
+        kwargs = {'step_to_t': step_to_t, 'diffusion': diffusion}
+
+    try:
+        model = globals()[config.model](device=device,
+                                        num_filters=config.num_filters,
+                                        depth=config.depth,
+                                        ode_location=config.ode_location,
+                                        in_channels=num_image_channel,
+                                        out_channels=num_image_channel,
+                                        contrastive=config.coeff_contrastive + config.coeff_invariance > 0,
+                                        **kwargs)
+    except:
+        raise ValueError('`config.model`: %s not supported.' % config.model)
 
     ema = ExponentialMovingAverage(model.parameters(), decay=0.9)
 
@@ -130,8 +130,7 @@ def train(config: AttributeHashmap):
     recon_psnr_thr, recon_good_enough = 25, False
 
     # Only relevant to ODE
-    config.t_multiplier = config.ode_max_t
-    # config.t_multiplier = config.ode_max_t / max_t
+    config.t_multiplier = config.ode_max_t / max_t
 
     for epoch_idx in tqdm(range(config.max_epochs)):
         if config.model == 'I2SBUNet':
@@ -200,8 +199,6 @@ def train_epoch(config: AttributeHashmap,
         log('[Epoch %d] Will not train the time-dependent modules until the reconstruction is good enough.' % (epoch_idx + 1),
             filepath=config.log_dir,
             to_console=False)
-
-    print(len(train_set))
 
     assert len(train_set) == len(train_set.dataset)
     num_train_samples = min(config.max_training_samples, len(train_set))
@@ -515,9 +512,14 @@ def val_epoch(config: AttributeHashmap,
         x_end_recon = model(x=x_end, t=torch.zeros(1).to(device))
         x_end_pred = model(x=x_start, t=torch.diff(t_list) * config.t_multiplier)
 
-        x_start_seg = segmentor(x_start) > 0.5
-        x_end_seg = segmentor(x_end) > 0.5
-        x_end_pred_seg = segmentor(x_end_pred) > 0.5
+        # Segmentor expects 1-channel input; convert RGB to grayscale if needed.
+        x_start_for_seg = x_start if x_start.shape[1] == 1 else x_start.mean(dim=1, keepdim=True)
+        x_end_for_seg = x_end if x_end.shape[1] == 1 else x_end.mean(dim=1, keepdim=True)
+        x_end_pred_for_seg = x_end_pred if x_end_pred.shape[1] == 1 else x_end_pred.mean(dim=1, keepdim=True)
+
+        x_start_seg = segmentor(x_start_for_seg) > 0.5
+        x_end_seg = segmentor(x_end_for_seg) > 0.5
+        x_end_pred_seg = segmentor(x_end_pred_for_seg) > 0.5
 
         x0_true, x0_recon, xT_true, xT_recon, xT_pred, x0_seg, xT_seg, xT_pred_seg = \
             numpy_variables(x_start, x_start_recon, x_end, x_end_recon, x_end_pred,
@@ -614,9 +616,14 @@ def val_epoch_I2SB(config: AttributeHashmap,
         x_end_recon = x_end_recon[:, -1, ...]
         x_end_pred = x_end_pred[:, -1, ...].to(device)
 
-        x_start_seg = segmentor(x_start) > 0.5
-        x_end_seg = segmentor(x_end) > 0.5
-        x_end_pred_seg = segmentor(x_end_pred) > 0.5
+        # Segmentor expects 1-channel input; convert RGB to grayscale if needed.
+        x_start_for_seg = x_start if x_start.shape[1] == 1 else x_start.mean(dim=1, keepdim=True)
+        x_end_for_seg = x_end if x_end.shape[1] == 1 else x_end.mean(dim=1, keepdim=True)
+        x_end_pred_for_seg = x_end_pred if x_end_pred.shape[1] == 1 else x_end_pred.mean(dim=1, keepdim=True)
+
+        x_start_seg = segmentor(x_start_for_seg) > 0.5
+        x_end_seg = segmentor(x_end_for_seg) > 0.5
+        x_end_pred_seg = segmentor(x_end_pred_for_seg) > 0.5
 
         x0_true, x0_recon, xT_true, xT_recon, xT_pred, x0_seg, xT_seg, xT_pred_seg = \
             numpy_variables(x_start, x_start_recon, x_end, x_end_recon, x_end_pred,
@@ -656,8 +663,8 @@ def val_epoch_I2SB(config: AttributeHashmap,
 
 @torch.no_grad()
 def test(config: AttributeHashmap):
-    device = torch.device(
-        'cuda:%d' % config.gpu_id if torch.cuda.is_available() else 'cpu')
+    # Ensure gpu id is converted to int if passed as a string from CLI
+    device = torch.device(f"cuda:{int(config.gpu_id)}" if torch.cuda.is_available() else "cpu")
     train_set, val_set, test_set, num_image_channel, max_t = \
         prepare_dataset(config=config)
 
@@ -945,11 +952,37 @@ def gray_to_rgb(*tensors: torch.Tensor) -> Tuple[np.array]:
     return rgb_list
 
 def plot_contour(image, label):
-    true_contours, _hierarchy = cv2.findContours(np.uint8(label),
-                                                 cv2.RETR_TREE,
-                                                 cv2.CHAIN_APPROX_NONE)
-    for contour in true_contours:
-        cv2.drawContours(image, contour, -1, (0.0, 1.0, 0.0), 2)
+    """Overlay segmentation contours on an image and return the overlaid image.
+
+    - Ensures a writable, contiguous, 3-channel uint8 image for OpenCV.
+    - Thresholds label to a binary mask and finds external contours.
+    - Draws all contours in green.
+    """
+    img = image
+
+    # Ensure 3-channel last-dimension image (H, W, 3)
+    if img.ndim == 2:
+        img = np.repeat(img[..., None], 3, axis=-1)
+    elif img.ndim == 3 and img.shape[-1] == 1:
+        img = np.repeat(img, 3, axis=-1)
+
+    # Convert to uint8 contiguous buffer for OpenCV
+    if img.dtype != np.uint8:
+        # If in [0,1], scale to [0,255], else clip to [0,255]
+        img_u8 = (np.clip(img, 0, 1) * 255.0).astype(np.uint8) if img.max() <= 1.0 else np.clip(img, 0, 255).astype(np.uint8)
+    else:
+        img_u8 = img.copy()
+    img_u8 = np.ascontiguousarray(img_u8)
+
+    # Prepare binary mask for contour detection
+    mask = (np.squeeze(label) > 0).astype(np.uint8)
+    contours, _hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Draw all contours in green (BGR)
+    if len(contours) > 0:
+        cv2.drawContours(img_u8, contours, -1, (0, 255, 0), 2)
+
+    return img_u8
 
 def plot_side_by_side(t_list, x0_true, xT_true, x0_recon, xT_recon, xT_pred, save_path: str,
                       x0_true_seg=None, xT_pred_seg=None, xT_true_seg=None) -> None:
@@ -1016,16 +1049,16 @@ def plot_side_by_side(t_list, x0_true, xT_true, x0_recon, xT_recon, xT_pred, sav
     # Fifth column: Ground Truth with segmentation.
     ax = fig_sbs.add_subplot(2, 6, 5)
     if x0_true_seg is not None:
-        plot_contour(x0_true, x0_true_seg)
-        ax.imshow(x0_true)
+        x0_true_vis = plot_contour(x0_true, x0_true_seg)
+        ax.imshow(x0_true_vis)
         ax.set_title('GT(t=0), time: %s\n[vs GT(t=T)]: DSC=%.3f, HD=%.2f' % (
             t_list[0].item(), dice_coeff(x0_true_seg, xT_true_seg), hausdorff(x0_true_seg, xT_true_seg)))
     ax.set_axis_off()
     ax.set_aspect(aspect_ratio)
     ax = fig_sbs.add_subplot(2, 6, 11)
     if xT_true_seg is not None:
-        plot_contour(xT_true, xT_true_seg)
-        ax.imshow(xT_true)
+        xT_true_vis = plot_contour(xT_true, xT_true_seg)
+        ax.imshow(xT_true_vis)
         ax.set_title('GT(t=T), time: %s' % t_list[1].item())
     ax.set_axis_off()
     ax.set_aspect(aspect_ratio)
@@ -1036,8 +1069,8 @@ def plot_side_by_side(t_list, x0_true, xT_true, x0_recon, xT_recon, xT_pred, sav
     ax.set_aspect(aspect_ratio)
     ax = fig_sbs.add_subplot(2, 6, 12)
     if xT_pred_seg is not None:
-        plot_contour(xT_pred, xT_pred_seg)
-        ax.imshow(xT_pred)
+        xT_pred_vis = plot_contour(xT_pred, xT_pred_seg)
+        ax.imshow(xT_pred_vis)
         ax.set_title('Pred(t=T), time: %s -> time: %s\n[vs GT(t=T)]: DSC=%.3f, HD=%.2f' % (
             t_list[0].item(), t_list[1].item(), dice_coeff(xT_pred_seg, xT_true_seg), hausdorff(xT_pred_seg, xT_true_seg)))
     ax.set_axis_off()
@@ -1052,7 +1085,7 @@ def plot_side_by_side(t_list, x0_true, xT_true, x0_recon, xT_recon, xT_pred, sav
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Entry point.')
     parser.add_argument('--mode', help='`train` or `test`?', default='train')
-    parser.add_argument('--gpu-id', help='Index of GPU device', default=0)
+    parser.add_argument('--gpu-id', help='Index of GPU device', default=0, type=int)
     parser.add_argument('--run-count', default=None, type=int)
 
     parser.add_argument('--dataset-name', default='retina_ucsf', type=str)

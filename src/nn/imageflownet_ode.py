@@ -53,7 +53,7 @@ class ImageFlowNetODE(BaseNetwork):
         # initialize model
         self.unet = create_model(
             image_size=image_size,
-            in_channels=1,  #in_channels
+            in_channels=in_channels,
             num_channels=64,
             num_res_blocks=1,
             channel_mult='',
@@ -72,16 +72,11 @@ class ImageFlowNetODE(BaseNetwork):
 
         # Record the channel dimensions by passing in a dummy tensor.
         self.dim_list = []
-        h_dummy = torch.zeros((1, 1, image_size, image_size)).type(self.unet.dtype)
+        # Use the configured number of input channels for the dummy forward to
+        # avoid channel mismatch (e.g., synthetic dataset uses 3 channels).
+        h_dummy = torch.zeros((1, in_channels, image_size, image_size)).type(self.unet.dtype)
         t_dummy = torch.zeros((1)).type(self.unet.dtype)
         emb = self.unet.time_embed(timestep_embedding(t_dummy, self.unet.model_channels))
-
-        # print("hdummy size:", h_dummy.size())
-        # print("emb size:", emb.size())
-        # h_dummy = h_dummy.repeat(1, 3, 1, 1)
-        # print("hdummy size:", h_dummy.size())
-
-
         for module in self.unet.input_blocks:
             h_dummy = module(h_dummy, emb)
             self.dim_list.append(h_dummy.shape[1])

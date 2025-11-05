@@ -33,8 +33,7 @@ def add_random_noise(img: torch.Tensor, max_intensity: float = 0.1) -> torch.Ten
     return img + noise
 
 def train(config: AttributeHashmap):
-    device = torch.device(
-        'cuda:%d' % config.gpu_id if torch.cuda.is_available() else 'cpu')
+    device = torch.device(f"cuda:{int(config.gpu_id)}" if torch.cuda.is_available() else "cpu")
 
     # NOTE: `additional_targets` here is a dirty hack.
     # I want to ensure the same augmentation to all images in the entire subsequence.
@@ -339,8 +338,7 @@ def val_epoch(config: AttributeHashmap,
 
 @torch.no_grad()
 def test(config: AttributeHashmap):
-    device = torch.device(
-        'cuda:%d' % config.gpu_id if torch.cuda.is_available() else 'cpu')
+    device = torch.device(f"cuda:{int(config.gpu_id)}" if torch.cuda.is_available() else "cpu")
     train_set, val_set, test_set, num_image_channel, max_t = \
         prepare_dataset_npt(config=config)
 
