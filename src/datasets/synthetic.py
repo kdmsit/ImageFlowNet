@@ -102,12 +102,12 @@ class SyntheticSubset(SyntheticDataset):
             return len(self.image_by_patient)
 
     def __getitem__(self, idx) -> Tuple[np.array, np.array]:
-        print(len(self.image_by_patient))
+        print("image pt length=>",len(self.image_by_patient))
         if self.return_format == 'one_pair':
             try:
                 image_list = self.image_by_patient[idx]
             except Exception as e:
-                print(idx)
+                print("Error index=>", idx)
 
 
             pair_indices = list(
