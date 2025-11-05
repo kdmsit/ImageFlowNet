@@ -102,8 +102,14 @@ class SyntheticSubset(SyntheticDataset):
             return len(self.image_by_patient)
 
     def __getitem__(self, idx) -> Tuple[np.array, np.array]:
+        print(len(self.image_by_patient))
         if self.return_format == 'one_pair':
-            image_list = self.image_by_patient[idx]
+            try:
+                image_list = self.image_by_patient[idx]
+            except Exception as e:
+                print(idx)
+
+
             pair_indices = list(
                 itertools.combinations(np.arange(len(image_list)), r=2))
             sampled_pair = [
