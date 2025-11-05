@@ -31,7 +31,7 @@ class SyntheticDataset(Dataset):
         # print("Found folders:", all_image_folders)
 
         root = os.path.join(base_path, image_folder)
-        print(root)
+        print("root", root)
         all_folders = [ os.path.join(root, d) for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
 
         print("Found", len(all_folders), "folders:")
