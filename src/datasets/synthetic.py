@@ -30,6 +30,12 @@ class SyntheticDataset(Dataset):
         all_image_folders = sorted(glob(folder_glob))
         print("Found folders:", all_image_folders)
 
+        root = os.path.join(base_path, image_folder)
+        all_folders = [ os.path.join(root, d) for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
+
+        print("Found", len(all_folders), "folders:")
+        print(all_folders)
+
         self.image_by_patient = []
 
         # Track maximum timestamp across the dataset (used by training code).
