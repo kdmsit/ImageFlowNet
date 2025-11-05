@@ -75,7 +75,7 @@ class SyntheticSubset(SyntheticDataset):
 
         self.target_dim = main_dataset.target_dim
         self.return_format = return_format
-        print(main_dataset)
+        print(main_dataset.keys())
         print("image_by_patient",len(main_dataset.image_by_patient))
         exit()
         self.image_by_patient = [main_dataset.image_by_patient[i] for i in subset_indices]
