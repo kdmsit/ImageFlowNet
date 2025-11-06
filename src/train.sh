@@ -9,7 +9,7 @@
 #SBATCH --mem=30G
 #SBATCH --partition=gpu_l40
 #SBATCH --gpus=1
-#SBATCH --nodelist=gnode7
+#SBATCH --nodelist=gnode4
 
 #export CUDA_VISIBLE_DEVICES='0'
 #export PYTORCH_CUDA_ALLOC_CONF='expandable_segments:True'
