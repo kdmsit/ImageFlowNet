@@ -17,5 +17,5 @@
 
 source /home/rs1/21CS92R01/miniconda3/bin/activate imageflownet
 
-
+python synthetic.py
 python train_2pt_all.py --model ImageFlowNetODE --random-seed 1 --dataset-name synthetic --max-epochs 100
