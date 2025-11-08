@@ -20,4 +20,4 @@ source /home/rs1/21CS92R01/miniconda3/bin/activate imageflownet
 #python preprocessing/synthesize_dataset.py
 #python train_2pt_all.py --model ImageFlowNetODE --random-seed 1 --dataset-name synthetic --max-epochs 100
 
-python train_2pt_all.py --model ImageFlowNetODE --random-seed 1 --dataset-name synthetic --max-epochs 10 --dataset-path ../data/synthesized/ --image-folder base --output-save-folder ../results/ --segmentor-ckpt ../checkpoints/segment_synthetic_seed1.pty
+python train_2pt_all.py --model ImageFlowNetODE --random-seed 1 --dataset-name synthetic --max-epochs 10 --dataset-path ../data/synthesized/ --image-folder base --output-save-folder ../results --segmentor-ckpt ../checkpoints/segment_synthetic_seed1.pty
