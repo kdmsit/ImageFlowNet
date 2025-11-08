@@ -120,7 +120,7 @@ def prepare_dataset(config: AttributeHashmap, transforms_list = [None, None, Non
     train_set = ExtendedDataset(dataset=train_set, desired_len=desired_len)
 
     train_set = DataLoader(dataset=train_set,
-                           batch_size=64,
+                           batch_size=1,
                            shuffle=True,
                            num_workers=config.num_workers)
     val_set = DataLoader(dataset=val_set,
